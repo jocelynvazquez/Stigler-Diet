@@ -1,0 +1,188 @@
+# Import pulp and pandas
+from pulp import *
+import pandas as pd
+
+#Pandas has a nice Excel reader function.
+foodData = pd.read_excel("C:/Users/Jocelyn/Documents/diet.xls")
+print(foodData.head())
+
+#Note that all food data is stored in rows 1-65 in Excel sheet
+foodData = foodData[0:64]
+
+#Converts data frame to a list.
+foodData = foodData.values.tolist()
+
+#Store the food names that are in the A column of the Excel sheet.
+foods = [x[0] for x in foodData]
+
+#Creates a dictionary for the costs of foods.
+cost = dict([(x[0], float(x[1])) for x in foodData])
+cals = dict([(x[0], float(x[3])) for x in foodData])
+chol = dict([(x[0], float(x[4])) for x in foodData])
+fat = dict([(x[0], float(x[5])) for x in foodData])
+sod = dict([(x[0], float(x[6])) for x in foodData])
+carb = dict([(x[0], float(x[7])) for x in foodData])
+dfib = dict([(x[0], float(x[8])) for x in foodData])
+prot = dict([(x[0], float(x[9])) for x in foodData])
+vita = dict([(x[0], float(x[10])) for x in foodData])
+vitc = dict([(x[0], float(x[11])) for x in foodData])
+calc = dict([(x[0], float(x[12])) for x in foodData])
+iron = dict([(x[0], float(x[13])) for x in foodData])
+
+#Now define the optimization problem by naming it and establishing if it minimizes or maximizes
+problem = LpProblem("Diet Problem", LpMinimize)
+
+#Next, define primary variables (amount of food in each diet) and give them a natural lower bound of 0
+amountVars = LpVariable.dicts("Amounts", foods, 0)
+
+#Next, add the objective function to the problem, which is the inner product of the cost and amountVars vectors
+problem += lpSum([cost[i] * amountVars[i] for i in foods]), 'total cost'
+
+#Next, hard code in all of the min/max constraints. Note that this isn't the most efficient way to do it, but it works.
+problem += lpSum([cals[i] * amountVars[i] for i in foods]) >= 1500, 'min cals'
+problem += lpSum([cals[i] * amountVars[i] for i in foods]) <= 2500, 'max cals'
+
+problem += lpSum([chol[i] * amountVars[i] for i in foods]) >= 30, 'min chol'
+problem += lpSum([chol[i] * amountVars[i] for i in foods]) <= 240, 'max chol'
+
+problem += lpSum([fat[i] * amountVars[i] for i in foods]) >= 20, 'min fat'
+problem += lpSum([fat[i] * amountVars[i] for i in foods]) <= 70, 'max fat'
+
+problem += lpSum([sod[i] * amountVars[i] for i in foods]) >= 800, 'min sod'
+problem += lpSum([sod[i] * amountVars[i] for i in foods]) <= 2000, 'max sod'
+
+problem += lpSum([carb[i] * amountVars[i] for i in foods]) >= 130, 'min carb'
+problem += lpSum([carb[i] * amountVars[i] for i in foods]) <= 450, 'max carb'
+
+problem += lpSum([dfib[i] * amountVars[i] for i in foods]) >= 125, 'min dfib'
+problem += lpSum([dfib[i] * amountVars[i] for i in foods]) <= 250, 'max dfib'
+
+problem += lpSum([prot[i] * amountVars[i] for i in foods]) >= 60, 'min prot'
+problem += lpSum([prot[i] * amountVars[i] for i in foods]) <= 100, 'max prot'
+
+problem += lpSum([vita[i] * amountVars[i] for i in foods]) >= 1000, 'min vita'
+problem += lpSum([vita[i] * amountVars[i] for i in foods]) <= 10000, 'max vita'
+
+problem += lpSum([vitc[i] * amountVars[i] for i in foods]) >= 400, 'min vitc'
+problem += lpSum([vitc[i] * amountVars[i] for i in foods]) <= 5000, 'max vitc'
+
+problem += lpSum([calc[i] * amountVars[i] for i in foods]) >= 700, 'min calc'
+problem += lpSum([calc[i] * amountVars[i] for i in foods]) <= 1500, 'max calc'
+
+problem += lpSum([iron[i] * amountVars[i] for i in foods]) >= 10, 'min iron'
+problem += lpSum([iron[i] * amountVars[i] for i in foods]) <= 40, 'max iron'
+
+
+#Function to solve the LP
+problem.solve()
+
+#One way to print out the amount values from optimal solution. It's very rough. You might wanna clean it.
+varsDictionary = {}
+for v in problem.variables():
+    varsDictionary[v.name] = v.varValue
+
+print(varsDictionary)
+
+######## Q15.2-2 #########
+#I'm gonna do the same or a nearly identical model below but I'm going to add the extra constraints,
+
+#Those being 1. minimum of 1/10 a serving has to be selected
+#2. EITHER celery OR frozen broccoli
+#3. Three types of protein in a day
+
+foodData = pd.read_excel("C:/Users/Jocelyn/Documents/ISYE 6501/FA_SP_hw11/data 15.2/diet.xls")
+print(foodData.head())
+
+#Note that all food data is stored in rows 1-65 in Excel sheet
+foodData = foodData[0:64]
+
+#Converts data frame to a list.
+foodData = foodData.values.tolist()
+
+#Store the food names that are in the A column of the Excel sheet.
+foods = [x[0] for x in foodData]
+
+#Creates a dictionary for the costs of foods.
+cost = dict([(x[0], float(x[1])) for x in foodData])
+cals = dict([(x[0], float(x[3])) for x in foodData])
+chol = dict([(x[0], float(x[4])) for x in foodData])
+fat = dict([(x[0], float(x[5])) for x in foodData])
+sod = dict([(x[0], float(x[6])) for x in foodData])
+carb = dict([(x[0], float(x[7])) for x in foodData])
+dfib = dict([(x[0], float(x[8])) for x in foodData])
+prot = dict([(x[0], float(x[9])) for x in foodData])
+vita = dict([(x[0], float(x[10])) for x in foodData])
+vitc = dict([(x[0], float(x[11])) for x in foodData])
+calc = dict([(x[0], float(x[12])) for x in foodData])
+iron = dict([(x[0], float(x[13])) for x in foodData])
+
+#Defining the new optimization problem
+problemAgain = LpProblem("Diet Problem", LpMinimize)
+
+#I have to add the new binary variable.
+amountVars = LpVariable.dicts("Amounts", foods, 0)
+binaryVars = LpVariable.dicts("InorOut", foods, 0, 1, LpBinary)
+
+#Next, add the objective function to the problem, which is the inner product of the cost and amountVars vectors
+problemAgain += lpSum([cost[i] * amountVars[i] for i in foods]), 'total cost'
+
+
+#Next, hard code in all of the min/max constraints. Note that this isn't the most efficient way to do it, but it works.
+problemAgain += lpSum([cals[i] * amountVars[i] for i in foods]) >= 1500, 'min cals'
+problemAgain += lpSum([cals[i] * amountVars[i] for i in foods]) <= 2500, 'max cals'
+
+problemAgain += lpSum([chol[i] * amountVars[i] for i in foods]) >= 30, 'min chol'
+problemAgain += lpSum([chol[i] * amountVars[i] for i in foods]) <= 240, 'max chol'
+
+problemAgain += lpSum([fat[i] * amountVars[i] for i in foods]) >= 20, 'min fat'
+problemAgain += lpSum([fat[i] * amountVars[i] for i in foods]) <= 70, 'max fat'
+
+problemAgain += lpSum([sod[i] * amountVars[i] for i in foods]) >= 800, 'min sod'
+problemAgain += lpSum([sod[i] * amountVars[i] for i in foods]) <= 2000, 'max sod'
+
+problemAgain += lpSum([carb[i] * amountVars[i] for i in foods]) >= 130, 'min carb'
+problemAgain += lpSum([carb[i] * amountVars[i] for i in foods]) <= 450, 'max carb'
+
+problemAgain += lpSum([dfib[i] * amountVars[i] for i in foods]) >= 125, 'min dfib'
+problemAgain += lpSum([dfib[i] * amountVars[i] for i in foods]) <= 250, 'max dfib'
+
+problemAgain += lpSum([prot[i] * amountVars[i] for i in foods]) >= 60, 'min prot'
+problemAgain += lpSum([prot[i] * amountVars[i] for i in foods]) <= 100, 'max prot'
+
+problemAgain += lpSum([vita[i] * amountVars[i] for i in foods]) >= 1000, 'min vita'
+problemAgain += lpSum([vita[i] * amountVars[i] for i in foods]) <= 10000, 'max vita'
+
+problemAgain += lpSum([vitc[i] * amountVars[i] for i in foods]) >= 400, 'min vitc'
+problemAgain += lpSum([vitc[i] * amountVars[i] for i in foods]) <= 5000, 'max vitc'
+
+problemAgain += lpSum([calc[i] * amountVars[i] for i in foods]) >= 700, 'min calc'
+problemAgain += lpSum([calc[i] * amountVars[i] for i in foods]) <= 1500, 'max calc'
+
+problemAgain += lpSum([iron[i] * amountVars[i] for i in foods]) >= 10, 'min iron'
+problemAgain += lpSum([iron[i] * amountVars[i] for i in foods]) <= 40, 'max iron'
+
+#New constraints for this version of the problem
+for i in foods:
+    problemAgain += amountVars[i] >= .1 * binaryVars[i]
+    problemAgain += amountVars[i] <= 10000 * binaryVars[i]
+
+problemAgain += binaryVars['Frozen Broccoli'] + binaryVars['Celery, Raw'] <= 1, 'At most one Celery or Frozen Broccoli'
+
+#for my protein constraint, I chose to categorize anything with 11 or more grams of protein per serving as "protein" (and tofu)
+problemAgain += binaryVars['Roasted Chicken'] + binaryVars['White Tuna in Water'] + \
+                 binaryVars['Taco'] + binaryVars['Malt-O-Meal,Choc'] + \
+                 binaryVars['Pork'] + binaryVars['Hamburger W/Toppings'] + \
+                 binaryVars['Vegetbeef Soup'] + binaryVars['Splt Pea&Hamsoup'] + \
+                 binaryVars['Neweng Clamchwd'] + binaryVars['Hotdog, Plain'] + binaryVars['Tofu'] >= 3, 'three different proteins'
+
+#Function to solve the LP
+problem.solve()
+
+#Okay this roughly gives me a similar if not identical diet.
+varsDictionary = {}
+for v in problem.variables():
+    varsDictionary[v.name] = v.varValue
+
+print(varsDictionary)
+
+
